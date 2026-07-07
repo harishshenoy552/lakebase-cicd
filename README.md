@@ -48,6 +48,7 @@ Lakebase project: projects/orders-api
 | `migrations/sql/*.sql` | Plain-SQL migrations (default path) |
 | `liquibase/changelog/*.xml` | Optional Liquibase changelog (versioned, rollback-capable) |
 | `tests/test_orders.py` | Tests that assert the migration is correct **against real rows** |
+| `tests/assertions.sql` | Same assertions in pure SQL — the `psql`-only fallback for offline agents |
 | `Jenkinsfile` | The pipeline that ties it together, with the DBA approval gate |
 
 The Jenkinsfile is a thin orchestrator around `scripts/*.sh`, so **the exact
@@ -88,7 +89,7 @@ BRANCH_ID=ci-pr-42 ./scripts/create_branch.sh
 BRANCH_ID=ci-pr-42 ./scripts/migrate.sh
 
 # 4. Run the tests against the branch — real seeded rows, not an empty schema
-python3 -m venv .venv && . .venv/bin/activate && pip install -q -r tests/requirements.txt
+#    (uses pytest if psycopg2/pytest are available, else psql-only SQL assertions)
 BRANCH_ID=ci-pr-42 ./scripts/test.sh
 
 # 5. "Merge": promote the same migration to production

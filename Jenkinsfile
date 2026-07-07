@@ -36,13 +36,9 @@ pipeline {
 
     stage('Test') {
       when { changeRequest() }
-      steps {
-        sh '''
-          python3 -m venv .venv && . .venv/bin/activate
-          pip install -q -r tests/requirements.txt
-          ./scripts/test.sh
-        '''
-      }
+      // test.sh runs the pytest suite, or falls back to psql-only SQL assertions
+      // when Python deps can't be installed (offline/locked-down agents).
+      steps { sh './scripts/test.sh' }
     }
 
     stage('DBA approval') {
