@@ -132,6 +132,40 @@ See [`Jenkinsfile`](./Jenkinsfile) for the full definition.
 
 ---
 
+## See it run in Jenkins
+
+The screenshots below are from a real run of this repo in a Jenkins multibranch
+pipeline against a live Lakebase project. (Workspace paths and endpoint
+hostnames are redacted.)
+
+**1. Jenkins discovers your branches and the pull request.**
+
+![Jenkins multibranch job showing discovered branches and PR](docs/screenshots/01-jenkins-branches.png)
+
+**2. The PR build runs the developer path** — checkout → create DB branch →
+migrate → test — then tears the branch down. `DBA approval` and `Promote` are
+skipped because it's a pull request.
+
+![PR build stage view](docs/screenshots/02-pr-stage-view.png)
+
+**3. Inside that PR build:** an instant copy-on-write branch is created, the
+migrations (incl. the PR's new one) are applied, and the tests run against the
+branch's real, production-seeded data.
+
+![PR build console output](docs/screenshots/03-pr-console.png)
+
+**4. On `main`, the pipeline pauses at the DBA approval gate** before touching
+production. The DBA approves the exact migration that already passed CI.
+
+![main build paused at DBA approval gate](docs/screenshots/04-dba-approval.png)
+
+**5. After approval, the promote stage applies the migration to production.**
+On `main`, the create/migrate/test stages are skipped — only the gated promote runs.
+
+![main build stage view with DBA approval and promote](docs/screenshots/05-main-stage-view.png)
+
+---
+
 ## How this compares to Oracle / SQL Server / Aurora
 
 | Capability | Oracle | SQL Server | Aurora | **Lakebase** |
