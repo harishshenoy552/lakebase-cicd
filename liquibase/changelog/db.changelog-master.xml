@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Master changelog. This is the OPTIONAL Liquibase path (MIGRATION_TOOL=liquibase).
+  Use it instead of the plain migrations/sql/*.sql path when you want versioned,
+  ordered, rollback-capable migrations with an audit trail (Liquibase records
+  applied changesets in its DATABASECHANGELOG table).
+
+  Do not mix the two paths against the same database — pick one per project.
+-->
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd">
+
+  <include file="001-init-schema.xml"        relativeToChangelogFile="true"/>
+  <include file="002-add-fulfillment-status.xml" relativeToChangelogFile="true"/>
+
+</databaseChangeLog>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd">
+
+  <changeSet id="002-add-fulfillment-status" author="dev-team">
+    <comment>Add NOT NULL fulfillment_status with a default so existing orders backfill.</comment>
+    <addColumn tableName="orders">
+      <column name="fulfillment_status" type="varchar(20)" defaultValue="pending">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>
+    <createIndex tableName="orders" indexName="idx_orders_fulfillment_status">
+      <column name="fulfillment_status"/>
+    </createIndex>
+    <rollback>
+      <dropIndex tableName="orders" indexName="idx_orders_fulfillment_status"/>
+      <dropColumn tableName="orders" columnName="fulfillment_status"/>
+    </rollback>
+  </changeSet>
+
+</databaseChangeLog>

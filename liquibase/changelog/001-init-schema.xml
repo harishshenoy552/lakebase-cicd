@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd">
+
+  <changeSet id="001-customers" author="dev-team">
+    <createTable tableName="customers">
+      <column name="id" type="serial"><constraints primaryKey="true"/></column>
+      <column name="email" type="varchar(255)"><constraints unique="true" nullable="false"/></column>
+      <column name="name" type="varchar(100)"/>
+      <column name="created_at" type="timestamp" defaultValueComputed="now()"/>
+    </createTable>
+    <rollback><dropTable tableName="customers"/></rollback>
+  </changeSet>
+
+  <changeSet id="001-orders" author="dev-team">
+    <createTable tableName="orders">
+      <column name="id" type="serial"><constraints primaryKey="true"/></column>
+      <column name="customer_id" type="int">
+        <constraints foreignKeyName="fk_orders_customer" references="customers(id)"/>
+      </column>
+      <column name="total" type="decimal(10,2)"><constraints nullable="false"/></column>
+      <column name="created_at" type="timestamp" defaultValueComputed="now()"/>
+    </createTable>
+    <rollback><dropTable tableName="orders"/></rollback>
+  </changeSet>
+
+</databaseChangeLog>
