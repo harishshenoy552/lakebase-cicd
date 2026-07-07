@@ -1,0 +1,70 @@
+digraph LakebaseCICD {
+    rankdir=TB;
+    bgcolor="white";
+    fontname="Helvetica";
+    labelloc="t";
+    fontsize=20;
+    nodesep=0.45;
+    ranksep=0.55;
+    splines=true;
+    label="Lakebase CI/CD — one Jenkins pipeline for developers and DBAs";
+
+    node [fontname="Helvetica", fontsize=12, style="filled,rounded", shape=box,
+          color="#B0B0B0", penwidth=1.2, margin="0.18,0.12"];
+    edge [color="#333333", penwidth=1.5, fontname="Helvetica", fontsize=10];
+
+    // ---- Entry ----
+    pr      [label="Developer opens\na Pull Request", shape=ellipse, style="filled", fillcolor="#E1E1E1"];
+
+    // ---- Developer path: PR build ----
+    subgraph cluster_pr {
+        label="Pull-request build  (developer's fast loop)";
+        fontsize=13; fontcolor="#1A5276"; color="#5DADE2"; style="rounded"; penwidth=2;
+        bgcolor="#F4FAFE";
+
+        create  [label="Create copy-on-write\nDB branch  (ci-pr-N)", fillcolor="#D4E6F1"];
+        migrate [label="Apply migrations\n(SQL or Liquibase)", fillcolor="#D4E6F1"];
+        test    [label="Run tests against\nproduction-seeded data", fillcolor="#D4E6F1"];
+        gate    [label="Tests pass?", shape=diamond, style="filled", fillcolor="#FCF3CF", color="#D4AC0D"];
+        teardown[label="Teardown ephemeral\nbranch  (always)", fillcolor="#D4E6F1"];
+
+        create -> migrate -> test -> gate;
+    }
+
+    fix [label="Fix & push\nnew commit", fillcolor="#FADBD8", color="#E74C3C"];
+
+    // ---- DBA path: main build ----
+    subgraph cluster_main {
+        label="main build  (DBA control gate)";
+        fontsize=13; fontcolor="#196F3D"; color="#58D68D"; style="rounded"; penwidth=2;
+        bgcolor="#F4FCF6";
+
+        merge   [label="Merge PR to main", fillcolor="#D5F5E3"];
+        dba     [label="DBA approval\ngate", shape=diamond, style="filled", fillcolor="#FCF3CF", color="#D4AC0D"];
+        promote [label="Promote same migration\nto production", fillcolor="#ABEBC6"];
+
+        merge -> dba -> promote;
+    }
+
+    // ---- Lakebase project ----
+    subgraph cluster_lakebase {
+        label="Lakebase project";
+        fontsize=13; fontcolor="#6C3483"; color="#BB8FCE"; style="rounded"; penwidth=2;
+        bgcolor="#FAF4FC";
+
+        prod    [label="production branch\n(protected)", shape=cylinder, fillcolor="#D5F5E3", color="#27AE60"];
+        ephem   [label="ci-pr-N branch\n(scales to zero)", shape=cylinder, fillcolor="#FDEBD0", color="#E67E22"];
+    }
+
+    // ---- Flow edges ----
+    pr -> create;
+    gate -> fix   [label="fail", color="#E74C3C", fontcolor="#C0392B"];
+    fix -> create [label="re-run", style=dashed, color="#E74C3C", fontcolor="#C0392B"];
+    gate -> merge [label="pass", color="#229954", fontcolor="#1E8449"];
+    gate -> teardown [label="on close", style=dashed];
+
+    // ---- Interactions with Lakebase (dotted = acts on a branch) ----
+    prod   -> ephem [label="instant\ncopy-on-write", style=dashed, color="#8E44AD", fontcolor="#6C3483"];
+    create -> ephem [label="creates", style=dotted, color="#2E86C1", fontcolor="#2471A3", constraint=false];
+    promote -> prod [label="applies\nmigration", style=dotted, color="#27AE60", fontcolor="#1E8449", constraint=false];
+}

@@ -12,6 +12,10 @@ pipeline**, on the **same migration artifact**, against the **same shape of data
 > Companion blog post: *Git-Style Database CI/CD with Lakebase* — the "why," the
 > architecture, and how this compares to Oracle, SQL Server, and Aurora.
 
+![Lakebase CI/CD workflow: PR build creates a copy-on-write branch, migrates and tests it; main build promotes through a DBA gate](docs/diagrams/lakebase-cicd-workflow.png)
+
+*(Editable source: [`docs/diagrams/lakebase-cicd-workflow.drawio`](docs/diagrams/lakebase-cicd-workflow.drawio) — import into Lucidchart via File → Import, or [`.dot`](docs/diagrams/lakebase-cicd-workflow.dot) for Graphviz.)*
+
 ---
 
 ## Why database branching changes CI/CD
@@ -28,8 +32,8 @@ Lakebase project: projects/orders-api
 ├── production        (protected)         ← DBA owns promotion
 │   └── primary endpoint
 └── ci-pr-42          (ephemeral)         ← one per pull request
-    └── rw endpoint   (scale-to-zero)        copy-on-write from production,
-                                             deleted on merge
+    └── primary endpoint (scale-to-zero)     auto-provisioned; copy-on-write
+                                             from production, deleted on merge
 ```
 
 ---
@@ -40,7 +44,7 @@ Lakebase project: projects/orders-api
 |------|------------|
 | `scripts/lib.sh` | Shared helpers: readiness waits, OAuth token + connection strings |
 | `scripts/bootstrap_production.sh` | One-time: create project, DB, baseline schema + seed data |
-| `scripts/create_branch.sh` | Create an ephemeral branch + read-write endpoint for a PR |
+| `scripts/create_branch.sh` | Create an ephemeral branch for a PR (endpoint auto-provisioned) |
 | `scripts/migrate.sh` | Apply migrations (plain SQL **or** Liquibase) to a branch |
 | `scripts/test.sh` | Run `pytest` against the branch's database |
 | `scripts/promote.sh` | Apply the reviewed migration to production |
